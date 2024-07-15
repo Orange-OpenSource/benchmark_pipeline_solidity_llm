@@ -1,0 +1,9 @@
+hardhat_test_env/node_modules
+hardhat_test_env/contracts/*.sol
+hardhat_test_env/test/*.js
+hardhat_test_env/cache
+hardhat_test_env/artifacts
+hardhat_test_env/package-lock.json
+output
+__pycache__/
+output_pipeline.zip
