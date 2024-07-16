@@ -20,6 +20,6 @@ if __name__ == '__main__':
     compute()
     revise()
     
-    print("\nCompression of the result in: ./pipeline_output.zip")
+    print("\nCompression of the result in: ./output_pipeline.zip")
     
     subprocess.run(['zip', '-r', "output_pipeline", "output"], capture_output=True, text=True)
