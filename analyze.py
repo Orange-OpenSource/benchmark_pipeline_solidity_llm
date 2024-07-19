@@ -158,7 +158,7 @@ def revise():
             stats[m]['details'][p]['PerfectContract'] = 0
             
             for it in data[m][p]:
-                if (data[m][p][it]["compilation"]['returnCode'] == 0):
+                if (data[m][p][it]["response"]!="error" and data[m][p][it]["compilation"]['returnCode'] == 0):
                     compiledTotal += 1
                     compiled += 1
                     
