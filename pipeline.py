@@ -95,7 +95,7 @@ def compute():
     
     cleanRepo()
         
-    dataset = initDataset("dataset.csv")
+    dataset = initDataset("simple_dataset.csv")
     
     models = initModels()
     
