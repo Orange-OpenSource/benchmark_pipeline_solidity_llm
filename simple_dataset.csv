@@ -1,0 +1,201 @@
+Name;Prompt
+Ownership;"Please write a simple ownership management smart contract using Solidity.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""Ownership"", function () {
+    let Ownership;
+    let ownership;
+    let initialOwner, newOwner;
+
+    beforeEach(async function () {
+        [initialOwner, newOwner] = await ethers.getSigners();
+        Ownership = await ethers.getContractFactory(""Ownership"");
+        ownership = await Ownership.deploy();
+    });
+
+    it(""should set the creator as the initial owner"", async function () {
+        let owner = await ownership.getOwner();
+        expect(owner).to.equal(initialOwner.address, ""The initial owner should be the contract creator"");
+    });
+
+    it(""should change owner"", async function () {
+        await ownership.connect(initialOwner).changeOwner(newOwner.address);
+        let owner = await ownership.getOwner();
+        expect(owner).to.equal(newOwner.address, ""The owner should be changed to the new owner"");
+    });
+
+    it(""should prevent non-owners from changing the owner"", async function () {
+        try {
+            await ownership.connect(newOwner).changeOwner(initialOwner.address);
+            expect.fail(""Expected revert when non-owner tries to change owner"");
+        } catch (error) {
+            expect(error.message).to.include(""revert"", ""Expected revert when non-owner tries to change owner"");
+        }
+        let owner = await ownership.getOwner();
+        expect(owner).to.equal(newOwner.address, ""The owner should remain unchanged after an unauthorized attempt"");
+    });
+});
+```
+Write only the code. Don't use any external dependencies."
+SimpleStorage;"Please write a smart contract in Solidity that stores and reads a value.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""MyContract"", function () {
+    let MyContract;
+    let myContract;
+    let owner;
+    beforeEach(async function () {
+        [owner] = await ethers.getSigners();
+        MyContract = await ethers.getContractFactory(""SimpleStorage"");
+        myContract = await MyContract.deploy();
+    });
+
+    it(""should store and retrieve a value"", async function () {
+        // Store a value
+        await myContract.connect(owner).store(123);
+
+        // Retrieve the stored value
+        const storedValue = await myContract.retrieve();
+
+        // Assert that the retrieved value is correct
+        expect(storedValue).to.equal(123, ""The value 123 was not stored."");
+    });
+});
+```
+Write only the code. Don't use any external dependencies."
+HelloWorld;"Please write a simple Solidity smart contract that includes a 'Hello World' message and a few basic functions.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""HelloWorld"", function () {
+    let HelloWorld;
+    let helloWorld;
+    let owner;
+
+    beforeEach(async function () {
+        [owner] = await ethers.getSigners();
+        HelloWorld = await ethers.getContractFactory(""HelloWorld"");
+        helloWorld = await HelloWorld.deploy();
+    });
+
+    it(""should initialize with 'Hello World'"", async function () {
+        const message = await helloWorld.getMessage();
+        expect(message).to.equal(""Hello World"");
+    });
+
+    it(""should set a custom message"", async function () {
+        await helloWorld.setMessage(""Custom Message"");
+        const message = await helloWorld.getMessage();
+        expect(message).to.equal(""Custom Message"");
+    });
+
+    it(""should reset the message to 'Hello World'"", async function () {
+        await helloWorld.setMessage(""Custom Message"");
+        await helloWorld.resetMessage();
+        const message = await helloWorld.getMessage();
+        expect(message).to.equal(""Hello World"");
+    });
+});
+```
+Write only the code. Don't use any external dependencies."
+AddressBook;"Please write a Solidity smart contract for storing an address book.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""AddressBook"", function () {
+    let AddressBook;
+    let addressBook;
+    let owner;
+
+    beforeEach(async function () {
+        [owner] = await ethers.getSigners();
+        AddressBook = await ethers.getContractFactory(""AddressBook"");
+        addressBook = await AddressBook.deploy();
+    });
+
+    it(""should add and retrieve an entry from the address book"", async function () {
+        const entry = {
+            name: ""Alice"",
+            address: ""0x1234567890123456789012345678901234567890"",
+            phoneNumber: ""1234567890""
+        };
+        await addressBook.addEntry(entry.name, entry.address, entry.phoneNumber);
+        const numberOfEntries = await addressBook.getNumberOfEntries();
+        expect(numberOfEntries).to.equal(1);
+
+        const retrievedEntry = await addressBook.getEntry(0);
+        expect(retrievedEntry[0]).to.equal(entry.name);
+        expect(retrievedEntry[1].toLowerCase()).to.equal(entry.address.toLowerCase()); // Address comparison is case-insensitive
+        expect(retrievedEntry[2]).to.equal(entry.phoneNumber);
+    });
+
+    it(""should handle multiple entries correctly"", async function () {
+        const entries = [
+            { name: ""Alice"", address: ""0x1111111111111111111111111111111111111111"", phoneNumber: ""1111111111"" },
+            { name: ""Bob"", address: ""0x2222222222222222222222222222222222222222"", phoneNumber: ""2222222222"" },
+            { name: ""Charlie"", address: ""0x3333333333333333333333333333333333333333"", phoneNumber: ""3333333333"" }
+        ];
+
+        for (let entry of entries) {
+            await addressBook.addEntry(entry.name, entry.address, entry.phoneNumber);
+        }
+
+        const numberOfEntries = await addressBook.getNumberOfEntries();
+        expect(numberOfEntries).to.equal(entries.length);
+
+        for (let i = 0; i < entries.length; i++) {
+            const retrievedEntry = await addressBook.getEntry(i);
+            expect(retrievedEntry[0]).to.equal(entries[i].name);
+            expect(retrievedEntry[1].toLowerCase()).to.equal(entries[i].address.toLowerCase());
+            expect(retrievedEntry[2]).to.equal(entries[i].phoneNumber);
+        }
+    });
+});
+```
+Write only the code. Don't use any external dependencies."
+SumCalculator;"Please write a Solidity smart contract for a simple calculator.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""SumCalculator"", function () {
+    let SumCalculator;
+    let sumCalculator;
+
+    beforeEach(async function () {
+        SumCalculator = await ethers.getContractFactory(""SumCalculator"");
+        sumCalculator = await SumCalculator.deploy();
+    });
+
+    it(""should calculate the sum correctly for various values of n"", async function () {
+        const testCases = [
+            { n: 1, expectedSum: 1 },
+            { n: 5, expectedSum: 15 },
+            { n: 10, expectedSum: 55 },
+            { n: 100, expectedSum: 5050 },
+        ];
+
+        for (let { n, expectedSum } of testCases) {
+            const calculatedSum = await sumCalculator.calculateSum(n);
+            expect(calculatedSum).to.equal(expectedSum);
+        }
+    });
+
+    it(""should revert if n is zero"", async function () {
+        await expect(sumCalculator.calculateSum(0)).to.be.revertedWith(""N must be greater than zero"");
+    });
+});
+
+```
+Write only the code. Don't use any external dependencies."

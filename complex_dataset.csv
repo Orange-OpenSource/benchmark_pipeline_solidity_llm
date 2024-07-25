@@ -1,0 +1,317 @@
+Name;Prompt
+ComplexStorage;"Please write a smart contract in Solidity to manage and interact with user and product data.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+
+describe(""ComplexStorage"", function () {
+  let complexStorage;
+  let owner;
+  let addr1;
+  let addr2;
+  let addrs;
+
+  beforeEach(async function () {
+    [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+    const ComplexStorage = await ethers.getContractFactory(""ComplexStorage"");
+    complexStorage = await ComplexStorage.deploy();
+  });
+
+  describe(""User registration"", function () {
+    it(""should register a user and retrieve the profile"", async function () {
+      await complexStorage.registerUser(""Alice"", 30, { from: addr1.address });
+      const userProfile = await complexStorage.getUserProfile(addr1.address);
+      expect(userProfile.name).to.equal(""Alice"");
+      expect(userProfile.age).to.equal(30);
+    });
+
+    it(""should emit a NewUserRegistered event when a new user is registered"", async function () {
+      await expect(complexStorage.connect(addr1).registerUser(""Bob"", 25))
+        .to.emit(complexStorage, ""NewUserRegistered"")
+        .withArgs(addr1.address);
+    });
+  });
+
+  describe(""Product management"", function () {
+    it(""should add a product"", async function () {
+      await complexStorage.connect(owner).addProduct(""Laptop"", 1500);
+      const product = await complexStorage.products(0);
+      expect(product.name).to.equal(""Laptop"");
+      expect(product.price).to.equal(1500);
+      expect(product.isAvailable).to.be.true;
+    });
+
+    it(""should emit a NewProductAdded event when a new product is added"", async function () {
+      await expect(complexStorage.connect(owner).addProduct(""Phone"", 500))
+        .to.emit(complexStorage, ""NewProductAdded"")
+        .withArgs(""Phone"", 500);
+    });
+  });
+
+  describe(""Access control"", function () {
+    it(""should not allow adding products when paused"", async function () {
+      await complexStorage.connect(owner).paused(true);
+      await expect(complexStorage.connect(owner).addProduct(""Tablet"", 300))
+        .to.be.revertedWith(""Contract is paused"");
+      await complexStorage.connect(owner).paused(false); // Reset state
+    });
+  });
+});
+```
+Write only the code. Don't use any external dependencies."
+Escrow;"Please write a smart contract in Solidity that acts as an escrow service for transactions between two parties. The contract should securely hold Ether until predefined conditions are met, such as the delivery of goods or completion of services. 
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""Escrow"", function () {
+    let Escrow;
+    let escrow;
+    let buyer, seller, arbitrator;
+
+    beforeEach(async function () {
+        [buyer, seller, arbitrator] = await ethers.getSigners();
+        Escrow = await ethers.getContractFactory(""Escrow"");
+
+        escrow = await Escrow.deploy(seller.address, arbitrator.address);
+    });
+
+    it(""should allow deposits and update balance correctly"", async function () {
+        const depositAmount = ethers.parseEther(""1.0""); // 1 ether
+        await escrow.connect(buyer).deposit({ value: depositAmount });
+        expect(await escrow.balance()).to.equal(depositAmount);
+    });
+
+    it(""should allow approvals from different parties"", async function () {
+        await escrow.connect(seller).approve();
+        expect(await escrow.getApprovalStatus(seller.address)).to.be.true;
+    });
+
+    it(""should allow initiating a dispute"", async function () {
+        await escrow.connect(buyer).dispute();
+        expect(await escrow.disputeActive()).to.be.true;
+    });
+
+    it(""should allow the arbitrator to resolve a dispute in favor of the seller"", async function () {
+        const depositAmount = ethers.parseEther(""2.0"");
+        await escrow.connect(buyer).deposit({ value: depositAmount });
+        await escrow.connect(buyer).dispute();
+        const initialSellerBalance = await ethers.provider.getBalance(seller.address);
+        await escrow.connect(arbitrator).resolve(true, buyer.address);
+        const finalSellerBalance = await ethers.provider.getBalance(seller.address);
+        expect(await escrow.balance()).to.equal(0);
+        expect(finalSellerBalance-initialSellerBalance).to.equal(depositAmount);
+        expect(await escrow.disputeActive()).to.be.false;
+    });
+
+    it(""should allow the arbitrator to resolve a dispute in favor of the buyer"", async function () {
+        const depositAmount = ethers.parseEther(""3.0"");
+        await escrow.connect(buyer).deposit({ value: depositAmount });
+        await escrow.connect(buyer).dispute();
+        const initialBuyerBalance = await ethers.provider.getBalance(buyer.address);
+        await escrow.connect(arbitrator).resolve(false, buyer.address);
+        const finalBuyerBalance = await ethers.provider.getBalance(buyer.address);
+        expect(await escrow.balance()).to.equal(0);
+        expect(finalBuyerBalance).to.be.closeTo(initialBuyerBalance+(depositAmount), ethers.parseEther(""0.01""));
+        expect(await escrow.disputeActive()).to.be.false;
+    });
+
+    it(""should only allow the arbitrator to resolve disputes"", async function () {
+        await escrow.connect(buyer).dispute();
+        await expect(escrow.connect(seller).resolve(true, buyer.address)).to.be.revertedWith(""Only arbitrator can call this."");
+    });
+});
+```
+Write only the code. Don't use any external dependencies."
+MultiSignature;"Please write a smart contract in Solidity that enhances the security of asset management by requiring multiple parties to approve a transaction before it can be executed. This contract acts as a wallet that holds and manages digital assets. The contract allows for the definition of a predetermined number of required approvals, which can be set during contract deployment or modified later by authorized parties. To initiate a transaction, a party submits a request to the contract specifying the recipient address, the amount or asset to be transferred, and any additional data required. Once the request is submitted, it enters a pending state. Authorized parties, typically defined as a group of individuals or entities, can then review the pending transaction and individually provide their approval by signing the transaction using their private keys. The contract keeps track of the number of approvals received. Once the required number of approvals is reached, the contract automatically executes the transaction, transferring the specified assets to the recipient address. If the required number of approvals is not met within a specified time frame, the transaction request can be canceled.
+It should pass the following tests:
+```js
+import { ethers } from ""hardhat"";
+import { expect } from ""chai"";
+
+describe(""MultiSignatureWallet"", function () {
+  let multiSigWallet;
+  let owner1;
+  let owner2;
+  let recipient;
+  let amount;
+  let transactionId;
+
+  before(async function () {
+    [owner1, owner2, recipient] = await ethers.getSigners();
+
+    const MultiSignatureWallet = await ethers.getContractFactory(""MultiSignatureWallet"");
+    multiSigWallet = await MultiSignatureWallet.deploy([owner1.address, owner2.address], 2);
+  });
+
+  it(""should submit a transaction"", async function () {
+    amount = ethers.utils.parseEther(""1"");
+    transactionId = await multiSigWallet.submitTransaction(recipient.address, amount, 1);
+
+    expect(transactionId).to.equal(0);
+  });
+
+  it(""should approve a transaction"", async function () {
+    await multiSigWallet.connect(recipient).approveTransaction(transactionId);
+
+    const isApproved = await multiSigWallet.approvedTransactions(transactionId);
+    expect(isApproved).to.be.true;
+  });
+
+  it(""should execute a transaction"", async function () {
+    const balanceBefore = await ethers.provider.getBalance(recipient.address);
+
+    await multiSigWallet.executeTransaction(transactionId);
+
+    const balanceAfter = await ethers.provider.getBalance(recipient.address);
+    expect(balanceAfter.sub(balanceBefore)).to.equal(amount);
+  });
+});
+```
+Write only the code. Don't use any external dependencies."
+SupplyChain;"Please write a smart contract in Solidity that records each step of a product's journey from production to delivery. It ensures the authenticity and traceability of goods, enhancing accountability and efficiency in the supply chain.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""SupplyChainTracker"", function () {
+  let SupplyChain;
+  let supplyChain;
+  let owner;
+  let manufacturer;
+  let distributor;
+  let retailer;
+
+  beforeEach(async function () {
+    SupplyChain = await ethers.getContractFactory(""SupplyChainTracker"");
+    [owner, manufacturer, distributor, retailer] = await ethers.getSigners();
+    supplyChain = await SupplyChain.deploy();
+  });
+
+  describe(""Product lifecycle"", function () {
+    it(""Should record production details"", async function () {
+      const productId = ""PROD123"";
+      const productionDetails = ""Product manufactured on 2021-09-01"";
+      await supplyChain.connect(manufacturer).logProduction(productId, productionDetails);
+
+      const recordedDetails = await supplyChain.getProductionDetails(productId);
+      expect(recordedDetails).to.equal(productionDetails);
+    });
+
+    it(""Should record shipping details"", async function () {
+      const productId = ""PROD123"";
+      const shippingDetails = ""Product shipped on 2021-09-05"";
+      await supplyChain.connect(distributor).logShipping(productId, shippingDetails);
+
+      const recordedDetails = await supplyChain.getShippingDetails(productId);
+      expect(recordedDetails).to.equal(shippingDetails);
+    });
+
+    it(""Should record delivery details"", async function () {
+      const productId = ""PROD123"";
+      const deliveryDetails = ""Product delivered on 2021-09-10"";
+      await supplyChain.connect(retailer).logDelivery(productId, deliveryDetails);
+
+      const recordedDetails = await supplyChain.getDeliveryDetails(productId);
+      expect(recordedDetails).to.equal(deliveryDetails);
+    });
+  });
+
+  describe(""Access control"", function () {
+    it(""Should only allow authorized users to log production"", async function () {
+      const productId = ""PROD123"";
+      const productionDetails = ""Unauthorized production log attempt"";
+      await expect(supplyChain.connect(retailer).logProduction(productId, productionDetails))
+        .to.be.revertedWith(""Unauthorized"");
+    });
+
+    it(""Should only allow authorized users to log shipping"", async function () {
+      const productId = ""PROD123"";
+      const shippingDetails = ""Unauthorized shipping log attempt"";
+      await expect(supplyChain.connect(manufacturer).logShipping(productId, shippingDetails))
+        .to.be.revertedWith(""Unauthorized"");
+    });
+
+    it(""Should only allow authorized users to log delivery"", async function () {
+      const productId = ""PROD123"";
+      const deliveryDetails = ""Unauthorized delivery log attempt"";
+      await expect(supplyChain.connect(distributor).logDelivery(productId, deliveryDetails))
+        .to.be.revertedWith(""Unauthorized"");
+    });
+  });
+});
+```
+Write only the code. Don't use any external dependencies."
+ProofOfOwnership;"Please write a smart contract in Solidity that is a proof-of-ownership system that allows users to register and manage the ownership of documents.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""ProofOfOwnership"", function () {
+    let ProofOfOwnership;
+    let proofOfOwnership;
+    let owner;
+    let addr1;
+    let addr2;
+    const file1 = ""file1"";
+    const file2 = ""file2"";
+    const name1 = ""Document 1"";
+    const name2 = ""Document 2"";
+    const file1Hash = ethers.keccak256(ethers.toUtf8Bytes(file1));
+    const file2Hash = ethers.keccak256(ethers.toUtf8Bytes(file2));
+
+    beforeEach(async function () {
+        [owner, addr1, addr2] = await ethers.getSigners();
+        ProofOfOwnership = await ethers.getContractFactory(""ProofOfOwnership"");
+        proofOfOwnership = await ProofOfOwnership.deploy();
+    });
+
+    it(""should store a document and emit an event"", async function () {
+        await expect(proofOfOwnership.store(file1, name1))
+            .to.emit(proofOfOwnership, ""Stored"");
+
+        const document = await proofOfOwnership.documents(file1Hash);
+        expect(document.ownerAddress).to.equal(owner.address);
+        expect(document.name).to.equal(name1);
+        expect(document.timestamp).to.be.above(0);
+    });
+
+    it(""should allow changing the owner of a document"", async function () {
+        await proofOfOwnership.store(file1, name1);
+        await proofOfOwnership.changeOwner(file1, addr1.address);
+
+        const document = await proofOfOwnership.documents(file1Hash);
+        expect(document.ownerAddress).to.equal(addr1.address);
+    });
+
+    it(""should return the correct document count"", async function () {
+        await proofOfOwnership.store(file1, name1);
+        await proofOfOwnership.store(file2, name2);
+
+        const documentCount = await proofOfOwnership.getDocumentCount();
+        expect(documentCount).to.equal(2);
+    });
+
+    it(""should return correct document details"", async function () {
+        await proofOfOwnership.store(file1, name1);
+        await proofOfOwnership.store(file2, name2);
+
+        const documentDetails = await proofOfOwnership.getDocument(1);
+        expect(documentDetails.fileHash).to.equal(file2Hash);
+        expect(documentDetails.ownerAddress).to.equal(owner.address);
+        expect(documentDetails.name).to.equal(name2);
+        expect(documentDetails.timestamp).to.be.above(0);
+    });
+
+    it(""should verify document ownership"", async function () {
+        await proofOfOwnership.store(file1, name1);
+        
+        expect(await proofOfOwnership.amIOwner(file1)).to.be.true;
+        expect(await proofOfOwnership.connect(addr1).amIOwner(file1)).to.be.false;
+    });
+});
+```
+Write only the code. Don't use any external dependencies."

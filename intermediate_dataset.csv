@@ -1,0 +1,314 @@
+Name;Prompt
+Voting;"Please write a simple voting ballot smart contract in Solidity. The contract should allow the owner to create a new ballot with a specific set of candidates. Voters can vote for their preferred candidate once per ballot. The contract should prevent double voting and only allow eligible voters to participate. Include a function to tally the votes and declare the winner.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""Voting"", function () {
+    let Voting;
+    let voting;
+    let owner, voter1, voter2;
+
+    beforeEach(async function () {
+        [owner, voter1, voter2] = await ethers.getSigners();
+        Voting = await ethers.getContractFactory(""votingMistral"");
+        voting = await Voting.deploy();
+
+    });
+
+    it(""should allow owner to create a ballot"", async function () {
+        await voting.connect(owner).createBallot([""Alice"", ""Bob""]);
+        let candidates = await voting.getCandidates(0);
+        expect(candidates.length).to.equal(2, ""Ballot should have 2 candidates"");
+    });
+
+    it(""should allow a voter to vote"", async function () {
+        await voting.connect(owner).addVoter(voter1.address);
+        await voting.connect(voter1).vote(0, 0);
+        let voteCount = await voting.getVotes(0, 0);
+        expect(voteCount).to.equal(1, ""Candidate should have 1 vote"");
+    });
+
+    it(""should prevent double voting"", async function () {
+        await voting.connect(owner).addVoter(voter1.address);
+        await voting.connect(voter1).vote(0, 0);
+        try {
+            await voting.connect(voter1).vote(0, 0);
+            expect.fail(""Expected revert for double voting"");
+        } catch (error) {
+            expect(error.message).to.include(""revert"", ""Expected revert for double voting"");
+        }
+    });
+
+    it(""should declare the correct winner"", async function () {
+        await voting.connect(owner).addVoter(voter2.address);
+        await voting.connect(voter2).vote(0, 1);
+        let winner = await voting.getWinner(0);
+        expect(winner).to.equal(""Bob"", ""Bob should be the winner"");
+    });
+});
+```
+Write only the code. Don't use any external dependencies."
+TokenCreation;"Please write a smart contract in Solidity that facilitates the automated creation of digital tokens, enabling issuers to define crucial parameters like the total supply and specific distribution mechanisms.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""TokenCreationContract"", function () {
+  let Token;
+  let token;
+  let owner;
+  let addr1;
+  let addr2;
+
+  beforeEach(async function () {
+    Token = await ethers.getContractFactory(""TokenCreation"");
+    [owner, addr1, addr2] = await ethers.getSigners();
+    token = await Token.deploy(1000); // Assuming the constructor takes the total supply as a parameter
+  });
+
+  describe(""Deployment"", function () {
+    it(""Should set the right owner"", async function () {
+      expect(await token.owner()).to.equal(owner.address);
+    });
+
+    it(""Should assign the total supply of tokens to the owner"", async function () {
+      const ownerBalance = await token.balanceOf(owner.address);
+      expect(await token.totalSupply()).to.equal(ownerBalance);
+    });
+  });
+
+  describe(""Transactions"", function () {
+    it(""Should transfer tokens between accounts"", async function () {
+      // Transfer 50 tokens from owner to addr1
+      await token.transfer(addr1.address, 50);
+      const addr1Balance = await token.balanceOf(addr1.address);
+      expect(addr1Balance).to.equal(50);
+
+      // Transfer 50 tokens from addr1 to addr2
+      await token.connect(addr1).transfer(addr2.address, 50);
+      const addr2Balance = await token.balanceOf(addr2.address);
+      expect(addr2Balance).to.equal(50);
+    });
+
+    it(""Should fail if sender doesn�t have enough tokens"", async function () {
+      const initialOwnerBalance = await token.balanceOf(owner.address);
+
+      // Try to send 1 more token than the owner has
+      await expect(token.connect(addr1).transfer(owner.address, initialOwnerBalance + 1)).to.be.revertedWith(""Not enough tokens"");
+
+      // Owner balance shouldn't have changed.
+      expect(await token.balanceOf(owner.address)).to.equal(initialOwnerBalance);
+    });
+  });
+
+  describe(""Token distribution"", function () {
+    it(""Should distribute tokens according to predefined rules"", async function () {
+      // Assuming there's a distribute function that distributes 100 tokens to addr1 and 200 to addr2
+      await token.distribute([addr1.address, addr2.address], [100, 200]);
+
+      expect(await token.balanceOf(addr1.address)).to.equal(100);
+      expect(await token.balanceOf(addr2.address)).to.equal(200);
+    });
+  });
+});
+```
+Write only the code. Don't use any external dependencies."
+PaymentSplit;"Please write a smart contract in Solidity designed to automatically divide incoming payments among multiple parties based on predefined percentages. This functionality ensures that each participant receives their fair share of the total funds according to the agreed-upon distribution rules, directly into their respective wallets.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""PaymentSplitterContract"", function () {
+  let PaymentSplitter;
+  let paymentSplitter;
+  let owner;
+  let addr1;
+  let addr2;
+  let addrs;
+
+  beforeEach(async function () {
+    PaymentSplitter = await ethers.getContractFactory(""PaymentSplitterContract"");
+    [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
+    paymentSplitter = await PaymentSplitter.deploy([addr1.address, addr2.address], [50, 50]);
+  });
+
+  describe(""Deployment"", function () {
+    it(""Should set the right addresses and percentages"", async function () {
+      expect(await paymentSplitter.parties(0)).to.equal(addr1.address);
+      expect(await paymentSplitter.percentages(0)).to.equal(50);
+      expect(await paymentSplitter.parties(1)).to.equal(addr2.address);
+      expect(await paymentSplitter.percentages(1)).to.equal(50);
+    });
+  });
+
+  describe(""Payment distribution"", function () {
+    it(""Should distribute payments according to predefined percentages"", async function () {
+      const paymentAmount = ethers.utils.parseEther(""1""); // 1 ETH
+
+      // Owner sends 1 ETH to the contract
+      await owner.sendTransaction({
+        to: paymentSplitter.address,
+        value: paymentAmount
+      });
+
+      // Check balances after payment
+      const balance1 = await ethers.provider.getBalance(addr1.address);
+      const balance2 = await ethers.provider.getBalance(addr2.address);
+
+      // Each address should receive 0.5 ETH
+      expect(balance1).to.equal(ethers.parseEther(""0.5""));
+      expect(balance2).to.equal(ethers.parseEther(""0.5""));
+    });
+
+    it(""Should revert if the percentages do not sum up to 100"", async function () {
+      await expect(PaymentSplitter.deploy([addr1.address, addr2.address], [30, 40])).to.be.revertedWith(""Percentages must sum up to 100"");
+    });
+  });
+});
+```
+Write only the code. Don't use any external dependencies."
+LoyaltyReward;"Please write a smart contract in Solidity that automates the tracking of customer purchases and the allocation of rewards points. It enables customers to earn points based on their spending, which can be redeemed according to predefined terms, enhancing customer engagement and loyalty efficiently.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""LoyaltyRewards"", function () {
+  let LoyaltyRewards;
+  let loyaltyRewards;
+  let owner;
+  let customer1;
+  let customer2;
+
+  beforeEach(async function () {
+    [owner, customer1, customer2] = await ethers.getSigners();
+    LoyaltyRewards = await ethers.getContractFactory(""LoyaltyRewardsSmartContract"");
+    loyaltyRewards = await LoyaltyRewards.deploy();
+    //await loyaltyRewards.deployed();
+  });
+
+  describe(""Deployment"", function () {
+    it(""Should set the right owner"", async function () {
+      expect(await loyaltyRewards.owner()).to.equal(owner.address);
+    });
+  });
+
+  describe(""Customer Registration"", function () {
+    it(""Should allow the owner to register customers"", async function () {
+      await loyaltyRewards.registerCustomer(customer1.address);
+      expect(await loyaltyRewards.registeredCustomers(customer1.address)).to.be.true;
+    });
+
+    it(""Should not allow non-owner to register customers"", async function () {
+      await expect(
+        loyaltyRewards.connect(customer1).registerCustomer(customer2.address)
+      ).to.be.revertedWith(""Only owner can call this function"");
+    });
+  });
+
+  describe(""Earning Points"", function () {
+    beforeEach(async function () {
+      await loyaltyRewards.registerCustomer(customer1.address);
+    });
+
+    it(""Should allow registered customers to earn points"", async function () {
+      await loyaltyRewards.earnPoints(customer1.address, 1000);
+      expect(await loyaltyRewards.points(customer1.address)).to.equal(10); // 1 point per 100 units spent
+    });
+
+    it(""Should not allow unregistered customers to earn points"", async function () {
+      await expect(
+        loyaltyRewards.earnPoints(customer2.address, 1000)
+      ).to.be.revertedWith(""Customer not registered"");
+    });
+  });
+
+  describe(""Redeeming Points"", function () {
+    beforeEach(async function () {
+      await loyaltyRewards.registerCustomer(customer1.address);
+      await loyaltyRewards.earnPoints(customer1.address, 1000);
+    });
+
+    it(""Should allow registered customers to redeem points"", async function () {
+      await loyaltyRewards.redeemPoints(customer1.address, 5);
+      expect(await loyaltyRewards.points(customer1.address)).to.equal(5);
+    });
+
+    it(""Should not allow customers to redeem more points than they have"", async function () {
+      await expect(
+        loyaltyRewards.redeemPoints(customer1.address, 15)
+      ).to.be.revertedWith(""Insufficient points"");
+    });
+  });
+
+  describe(""Points Balance"", function () {
+    beforeEach(async function () {
+      await loyaltyRewards.registerCustomer(customer1.address);
+      await loyaltyRewards.earnPoints(customer1.address, 1000);
+    });
+
+    it(""Should return the correct points balance for a customer"", async function () {
+      expect(await loyaltyRewards.getPoints(customer1.address)).to.equal(10);
+    });
+  });
+});
+```
+Write only the code. Don't use any external dependencies."
+Whitelist;"Please write a smart contract in Solidity that manage a whitelist.
+It should pass the following tests:
+```js
+const { expect } = require(""chai"");
+const { ethers } = require(""hardhat"");
+
+describe(""Whitelist"", function () {
+    let Whitelist;
+    let whitelist;
+    let owner;
+    let addr1;
+    let addr2;
+
+    beforeEach(async function () {
+        [owner, addr1, addr2] = await ethers.getSigners();
+        Whitelist = await ethers.getContractFactory(""Whitelist"");
+        whitelist = await Whitelist.deploy();
+    });
+
+    it(""should add an address to whitelist"", async function () {
+        await whitelist.addToWhitelist(addr1.address);
+        expect(await whitelist.addressLists(addr1.address)).to.equal(1); // 1 represents Whitelist
+    });
+
+    it(""should add an address to blacklist"", async function () {
+        await whitelist.addToBlacklist(addr2.address);
+        expect(await whitelist.addressLists(addr2.address)).to.equal(2); // 2 represents Blacklist
+    });
+
+    it(""should remove an address from list"", async function () {
+        await whitelist.addToWhitelist(addr1.address);
+        await whitelist.removeFromList(addr1.address);
+        expect(await whitelist.addressLists(addr1.address)).to.equal(0); // 0 represents None
+    });
+
+    it(""should allow address if in whitelist"", async function () {
+        await whitelist.addToWhitelist(addr1.address);
+        expect(await whitelist.isAllowed(addr1.address)).to.be.true;
+    });
+
+    it(""should disallow address if in blacklist"", async function () {
+        await whitelist.addToBlacklist(addr2.address);
+        expect(await whitelist.isAllowed(addr2.address)).to.be.false;
+    });
+
+    it(""should allow address by default if not in any list"", async function () {
+        expect(await whitelist.isAllowed(owner.address)).to.be.true;
+    });
+
+    // Add more tests as needed
+
+});
+```
+Write only the code. Don't use any external dependencies."
