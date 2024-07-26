@@ -64,6 +64,15 @@ tree output/
 └── stats.json          # Stats
 ```
 
+
+## Available input datasets
+
+| Complexity | File     | Use cases                       |
+| :-------- | :------- | :-------------------------------- |
+| Simple      | `simple_dataset.csv` | **Ownership**, **SimpleStorage**, **HelloWorld**, **AddressBook**, **SumCalculator** |
+| Intermediate| `intermediate_dataset.csv` | **Voting**, **TokenCreation**, **PaymentSplit**, **LoyaltyReward**, **Whitelist** |
+| Complex     | `complex_dataset.csv` | **ComplexStorage**, **Escrow**, **MultiSignature**, **SupplyChain**, **ProofOfOwnership** |
+
 ## Built with
 - [Ollama](https://github.com/ollama/ollama): Running large language models locally.
 - [Slither, the smart contract static analyzer](https://github.com/crytic/slither): Slither is a Solidity & Vyper static analysis framework written in Python3.
