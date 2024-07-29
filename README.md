@@ -3,7 +3,7 @@ This project provides an automated pipeline to generate smart contracts using La
 
 ## Citation
 
-If you use this pipeline, please cite this bibitem article, which serves as a reference for its usage.
+If you use this pipeline, please cite this bibitem article, which serves as a reference to the research article introducing this topic and benchmark.
 ```
 @inproceedings{DBLP:conf/brains/Daspe2024,
   author       = {Etienne Daspe, Mathis Durand, Julien Hatin, Salma Bradai},
