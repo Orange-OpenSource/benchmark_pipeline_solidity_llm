@@ -1,6 +1,19 @@
 # Benchmarking Large Language Models for Ethereum Smart Contract Development
 This project provides an automated pipeline to generate smart contracts using Large Language Models with [Ollama](https://www.ollama.com/). The pipeline compiles these smart contracts with the Solidity compiler (solc), analyzes them using [Slither](https://github.com/crytic/slither), and performs unit testing based on the provided test instructions in the prompts. Statistics are then produced to determine the efficiency of each model and various prompts are used to interpret the results.
 
+## Citation
+
+If you use this pipeline, please cite this bibitem article, which serves as a reference for its usage.
+```
+@inproceedings{DBLP:conf/brains/Daspe2024,
+  author       = {Etienne Daspe, Mathis Durand, Julien Hatin, Salma Bradai},
+  title        = {Benchmarking Large Language Models for Ethereum Smart Contract Development},
+  booktitle    = {6th Conference on Blockchain Research Applications for Innovative Networks and Services, {BRAINS} 2024, Berlin, Germany, October 08-11, 2024},
+  publisher    = {{IEEE}},
+  year         = {2024},
+```
+
+
 ## Pipeline architecture
 ![architecture](architecture.png)
 
