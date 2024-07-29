@@ -11,6 +11,7 @@ If you use this pipeline, please cite this bibitem article, which serves as a re
   booktitle    = {6th Conference on Blockchain Research Applications for Innovative Networks and Services, {BRAINS} 2024, Berlin, Germany, October 08-11, 2024},
   publisher    = {{IEEE}},
   year         = {2024},
+}
 ```
 
 
