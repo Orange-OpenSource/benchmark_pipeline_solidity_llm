@@ -6,15 +6,15 @@ This project provides an automated pipeline to generate smart contracts using La
 If you use this pipeline, please cite this bibitem article, which serves as a reference to the research article introducing this topic and benchmark.
 ```
 @INPROCEEDINGS{Dasp2410:Benchmarking,
-AUTHOR="Etienne Daspe and Mathis Durand and Julien Hatin and Salma Bradai",
-TITLE="Benchmarking Large Language Models for Ethereum Smart Contract Development",
-BOOKTITLE="2024 6th Conference on Blockchain Research \& Applications for Innovative
-Networks and Services (BRAINS) (BRAINS'24)",
-ADDRESS="Berlin, Germany",
-PAGES=4,
-DAYS=7,
-MONTH=oct,
-YEAR=2024,
+    AUTHOR="Etienne Daspe and Mathis Durand and Julien Hatin and Salma Bradai",
+    TITLE="Benchmarking Large Language Models for Ethereum Smart Contract Development",
+    BOOKTITLE="2024 6th Conference on Blockchain Research \& Applications for Innovative
+    Networks and Services (BRAINS) (BRAINS'24)",
+    ADDRESS="Berlin, Germany",
+    PAGES=4,
+    DAYS=7,
+    MONTH=oct,
+    YEAR=2024,
 }
 ```
 
