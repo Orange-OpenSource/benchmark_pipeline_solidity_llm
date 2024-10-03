@@ -20,7 +20,7 @@ If you use this pipeline, please cite this bibitem article, which serves as a re
 
 
 ## Pipeline architecture
-![architecture](architecture.png)
+![architecture](architecture.jpg)
 
 
 ## Prerequisites
